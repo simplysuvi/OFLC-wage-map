@@ -18,11 +18,11 @@ All wage data used in this project was downloaded from the official DOL OFLC web
 
 | File | Purpose |
 |------|---------|
-| `ALC_Export.csv` | Official OFLC wage data (Level 1–4, Average) by SOC and Area |
-| `Geography.csv` | Maps `Area` codes to MSA/region names and states |
-| `oes_soc_occs.csv` | SOC code to official job title + description |
-| `Wage Year 2024–25 ACWIA Crosswalks.xlsx` | Maps O*NET codes to ACWIA-compatible SOC codes |
-| `Wage Year 2024–25 Appendix A, Job Zone, and Education.xlsx` | Contains job zone and education level info per SOC |
+| `data/ALC_Export.csv` | Official OFLC wage data (Level 1–4, Average) by SOC and Area |
+| `data/Geography.csv` | Maps `Area` codes to MSA/region names and states |
+| `data/oes_soc_occs.csv` | SOC code to official job title + description |
+| `data/Wage Year 2024–25 ACWIA Crosswalks.xlsx` | Maps O*NET codes to ACWIA-compatible SOC codes |
+| `data/Wage Year 2024–25 Appendix A, Job Zone, and Education.xlsx` | Contains job zone and education level info per SOC |
 
 
 ## Disclaimer
