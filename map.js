@@ -74,6 +74,84 @@ function addResetControl() {
 
     // Add the control to the map
     map.addControl(new ResetControl());
+
+    // Add filter toggle button below reset button
+    const FilterToggleControl = L.Control.extend({
+        options: {
+            position: 'topleft'
+        },
+
+        onAdd: function (map) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            const button = L.DomUtil.create('a', 'filter-toggle-button', container);
+
+            button.innerHTML = '<i class="fas fa-filter"></i>'; // Filter icon
+            button.title = 'Toggle Filters';
+            button.href = '#';
+            button.style.fontSize = '18px';
+            button.style.fontWeight = 'bold';
+            button.style.textDecoration = 'none';
+            button.style.textAlign = 'center';
+            button.style.lineHeight = '30px';
+            button.style.width = '30px';
+            button.style.height = '30px';
+            button.style.display = 'block';
+            container.style.border = 'None';
+
+            L.DomEvent.on(button, 'click', function (e) {
+                L.DomEvent.stopPropagation(e);
+                L.DomEvent.preventDefault(e);
+                toggleFilterBox();
+            });
+
+            return container;
+        }
+    });
+
+    // Add the filter toggle control to the map
+    map.addControl(new FilterToggleControl());
+}
+
+// Toggle filter box visibility
+function toggleFilterBox() {
+    const filterBox = document.getElementById('filter-box');
+    filterBox.classList.toggle('hidden');
+
+    // Add event listener to close button if not already added
+    const closeButton = document.querySelector('.filter-close-button');
+    if (closeButton) {
+        // Remove any existing event listeners to avoid duplicates
+        closeButton.removeEventListener('click', closeFilterBox);
+        // Add the event listener
+        closeButton.addEventListener('click', closeFilterBox);
+    }
+
+    // Add event listener to close when clicking outside the modal
+    document.addEventListener('click', closeFilterBoxOutside);
+}
+
+// Close filter box - make it globally accessible
+window.closeFilterBox = function () {
+    const filterBox = document.getElementById('filter-box');
+    filterBox.classList.add('hidden');
+}
+
+// Close filter box when clicking outside
+function closeFilterBoxOutside(event) {
+    const filterBox = document.getElementById('filter-box');
+    const filterModalContent = document.querySelector('.filter-modal-content');
+
+    // If the filter box is visible and the click is outside the modal content
+    if (!filterBox.classList.contains('hidden') &&
+        event.target !== filterModalContent &&
+        !filterModalContent.contains(event.target) &&
+        !event.target.classList.contains('filter-toggle-button')) {
+
+        filterBox.classList.add('hidden');
+
+        // Remove the event listener after closing
+        document.removeEventListener('click', closeFilterBoxOutside);
+    }
 }
 
 // Reset the map view to show the entire US
@@ -248,6 +326,9 @@ function updateMap() {
 
     // Zoom to the selected area
     zoomToSelectedArea();
+
+    // Hide loading overlay once map is updated
+    document.getElementById('map-loading-overlay').style.display = 'none';
 }
 
 // Style function for county features
@@ -552,10 +633,10 @@ function zoomToFeature(e) {
             const countyName = feature.properties.CountyTownName.split(',')[0].trim();
             selectedCounty = countyName;
 
-            // Update the county dropdown
-            const countySelect = document.getElementById('county');
-            if (countySelect) {
-                countySelect.value = selectedCounty;
+            // Update the county input
+            const countyInput = document.getElementById('county');
+            if (countyInput) {
+                countyInput.value = selectedCounty;
             }
         }
 

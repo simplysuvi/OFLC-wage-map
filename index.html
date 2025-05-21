@@ -9,8 +9,10 @@
     <title>Wage Atlas • OFLC Prevailing Wage Map 2024-25</title>
 
     <!-- Favicon -->
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>">
+    <link rel="icon" href="assets/favicon.ico">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -24,77 +26,97 @@
 
 <body>
     <div class="container">
-        <div class="sidebar hidden">
-            <h2>Filter Wage Map</h2>
+        <!-- Filter modal that will be shown/hidden -->
+        <div id="filter-box" class="filter-modal hidden">
+            <div class="filter-modal-content">
+                <span class="filter-close-button"><i class="fas fa-times"></i></span>
+                <h3>Filter Wage Map</h3>
 
-            <div class="filter-group">
-                <label for="job-title">Select Job Title</label>
-                <select id="job-title"></select>
-            </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="job-title">Job Title</label>
+                        <div class="autocomplete-wrapper">
+                            <input type="text" id="job-title" placeholder="Type to search...">
+                            <div class="autocomplete-results" id="job-title-results"></div>
+                        </div>
+                    </div>
 
-            <div class="filter-group">
-                <label for="wage-level">Select Wage Level</label>
-                <select id="wage-level">
-                    <option value="Level1">Level 1</option>
-                    <option value="Level2">Level 2</option>
-                    <option value="Level3">Level 3</option>
-                    <option value="Level4">Level 4</option>
-                    <option value="Average">Average</option>
-                </select>
-            </div>
+                    <div class="filter-group">
+                        <label for="wage-level">Wage Level</label>
+                        <select id="wage-level">
+                            <option value="Level1">Level 1</option>
+                            <option value="Level2">Level 2</option>
+                            <option value="Level3">Level 3</option>
+                            <option value="Level4">Level 4</option>
+                            <option value="Average">Average</option>
+                        </select>
+                    </div>
+                </div>
 
-            <div class="filter-group">
-                <label for="state">Filter by State</label>
-                <select id="state">
-                    <option value="All">All</option>
-                </select>
-            </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="state">State</label>
+                        <select id="state">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
 
-            <div class="filter-group">
-                <label for="city">Filter by City</label>
-                <select id="city">
-                    <option value="All">All</option>
-                </select>
-            </div>
+                    <div class="filter-group">
+                        <label for="city">City</label>
+                        <select id="city">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+                </div>
 
-            <div class="filter-group">
-                <label for="county">Filter by County</label>
-                <select id="county">
-                    <option value="All">All</option>
-                </select>
-            </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="county">County</label>
+                        <div class="autocomplete-wrapper">
+                            <input type="text" id="county" placeholder="Type to search...">
+                            <div class="autocomplete-results" id="county-results"></div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="filter-group">
-                <label for="min-wage">Minimum Wage ($)</label>
-                <input type="number" id="min-wage" min="0" step="1000" placeholder="Enter minimum wage">
-            </div>
 
-            <div class="filter-group">
-                <label for="max-wage">Maximum Wage ($)</label>
-                <input type="number" id="max-wage" min="0" step="1000" placeholder="Enter maximum wage">
-            </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="min-wage">Min Wage ($)</label>
+                        <input type="number" id="min-wage" min="0" step="1000" placeholder="Min">
+                    </div>
 
-            <div class="filter-group">
-                <button id="apply-wage-filters">
-                    <i class="fas fa-filter"></i> Apply Filters
-                </button>
+                    <div class="filter-group">
+                        <label for="max-wage">Max Wage ($)</label>
+                        <input type="number" id="max-wage" min="0" step="1000" placeholder="Max">
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button id="apply-wage-filters">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
             </div>
         </div>
-
-        <button id="toggle-sidebar" class="toggle-sidebar-button">
-            <span class="toggle-icon"><i class="fas fa-bars"></i></span>
-            <span class="toggle-text">Filters</span>
-        </button>
 
         <div class="main-content">
             <div class="header">
                 <div class="header-content">
-                    <h1>Wage Atlas</h1>
+                    <div class="title-container">
+                        <img src="assets/logo.png" alt="Wage Atlas Logo" class="header-logo">
+                        <h1>Wage Atlas</h1>
+                    </div>
                     <h3>Interactive visualization of prevailing wage data across the United States</h3>
                     <p id="map-subtitle" class="subtitle"></p>
-                    <button id="info-button" class="info-button" title="Data Sources">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
+                    <div class="header-buttons">
+                        <button id="zip-lookup-button" class="header-button" title="Zip Code Lookup">
+                            <i class="fas fa-search-location"></i>
+                        </button>
+                        <button id="info-button" class="header-button" title="Data Sources">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -104,16 +126,39 @@
                     <span class="close-button"><i class="fas fa-times"></i></span>
                     <h4>Data Sources</h4>
                     <ul>
-                        <li>OFLC wage data from <a href="https://flag.dol.gov/wage-data/wage-data-downloads"
+                        <li>OFLC Prevailing Wage data: <a href="https://flag.dol.gov/wage-data/wage-data-downloads"
                                 target="_blank">U.S. Department of Labor</a></li>
-                        <li>Geographic boundaries from <a
+                        <li>Geographic boundaries: <a
                                 href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html"
                                 target="_blank">U.S. Census Bureau</a></li>
                     </ul>
                 </div>
             </div>
 
-            <div id="map"></div>
+            <!-- Zip Code Lookup Modal -->
+            <div id="zip-lookup-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-button"><i class="fas fa-times"></i></span>
+                    <h4>Zip Code Lookup</h4>
+                    <p>Enter a zip code to find which area and county it falls under.</p>
+                    <div class="zip-lookup-container">
+                        <div class="zip-lookup-wrapper">
+                            <input type="text" id="zip-code" placeholder="Enter zip code..." pattern="[0-9]{5}"
+                                maxlength="5">
+                            <button id="zip-lookup-btn">Lookup</button>
+                        </div>
+                        <div id="zip-result" class="zip-result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="map">
+                <!-- Loading overlay for the map -->
+                <div id="map-loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading map data...</div>
+                </div>
+            </div>
 
             <div class="data-table-container">
                 <button id="toggle-table">Show Data Table</button>

@@ -21,6 +21,9 @@ const ANNUAL_MULTIPLIER = 2080; // 40 hours per week * 52 weeks
 // Load the CSV data
 async function loadData() {
     try {
+        // Show loading overlay
+        document.getElementById('map-loading-overlay').style.display = 'flex';
+
         const response = await fetch('data/OFLC_Wages_2024-25/official/ALC_with_geography_and_soc.csv');
         const csvText = await response.text();
 
@@ -34,11 +37,15 @@ async function loadData() {
             error: function (error) {
                 console.error('Error parsing CSV:', error);
                 displayError('Failed to load wage data. Please try again later.');
+                // Hide loading overlay on error
+                document.getElementById('map-loading-overlay').style.display = 'none';
             }
         });
     } catch (error) {
         console.error('Error fetching CSV:', error);
         displayError('Failed to load wage data. Please try again later.');
+        // Hide loading overlay on error
+        document.getElementById('map-loading-overlay').style.display = 'none';
     }
 }
 
@@ -115,15 +122,48 @@ function processData(data) {
 
 // Populate filter dropdowns
 function populateFilters() {
-    // Populate job titles
-    const titleSelect = document.getElementById('job-title');
-    titleSelect.innerHTML = '';
+    // Set up job title autocomplete
+    const jobTitleInput = document.getElementById('job-title');
+    const jobTitleResults = document.getElementById('job-title-results');
 
-    uniqueTitles.forEach(title => {
-        const option = document.createElement('option');
-        option.value = title;
-        option.textContent = title;
-        titleSelect.appendChild(option);
+    // Set up initial job title value if available
+    if (uniqueTitles.length > 0) {
+        selectedTitle = uniqueTitles[0];
+        jobTitleInput.value = selectedTitle;
+    }
+
+    // Job title input event listener
+    jobTitleInput.addEventListener('input', function () {
+        const inputValue = this.value.toLowerCase();
+
+        // Filter titles based on input
+        const filteredTitles = uniqueTitles.filter(title =>
+            title.toLowerCase().includes(inputValue)
+        );
+
+        // Display autocomplete results
+        displayAutocompleteResults(jobTitleResults, filteredTitles, inputValue, (selected) => {
+            selectedTitle = selected;
+            jobTitleInput.value = selected;
+            updateFilteredData();
+            updateMap();
+            updateTable();
+        });
+    });
+
+    // Handle focus on job title input
+    jobTitleInput.addEventListener('focus', function () {
+        if (jobTitleResults.children.length > 0) {
+            jobTitleResults.classList.add('active');
+        }
+    });
+
+    // Handle blur on job title input
+    jobTitleInput.addEventListener('blur', function () {
+        // Delay hiding to allow for click on autocomplete item
+        setTimeout(() => {
+            jobTitleResults.classList.remove('active');
+        }, 200);
     });
 
     // Populate states
@@ -148,24 +188,59 @@ function populateFilters() {
         citySelect.appendChild(option);
     });
 
-    // Populate counties
-    const countySelect = document.getElementById('county');
-    countySelect.innerHTML = '';
+    // Set up county autocomplete
+    const countyInput = document.getElementById('county');
+    const countyResults = document.getElementById('county-results');
 
-    uniqueCounties.forEach(county => {
-        const option = document.createElement('option');
-        option.value = county;
-        option.textContent = county;
-        countySelect.appendChild(option);
+    // Set initial county value
+    countyInput.value = 'All';
+    selectedCounty = 'All';
+
+    // County input event listener
+    countyInput.addEventListener('input', function () {
+        const inputValue = this.value.toLowerCase();
+
+        // Filter counties based on input
+        const filteredCounties = uniqueCounties.filter(county =>
+            county.toLowerCase().includes(inputValue)
+        );
+
+        // Display autocomplete results
+        displayAutocompleteResults(countyResults, filteredCounties, inputValue, (selected) => {
+            selectedCounty = selected;
+            countyInput.value = selected;
+            updateFilteredData();
+            updateMap();
+            updateTable();
+        });
     });
 
-    // Add event listeners
-    titleSelect.addEventListener('change', function () {
-        selectedTitle = this.value;
-        updateFilteredData();
-        updateMap(); // This will also call zoomToSelectedArea
-        updateTable();
+    // Handle focus on county input
+    countyInput.addEventListener('focus', function () {
+        if (countyResults.children.length > 0) {
+            countyResults.classList.add('active');
+        } else {
+            // Show all counties on focus if no results are displayed
+            displayAutocompleteResults(countyResults, uniqueCounties.slice(0, 10), '', (selected) => {
+                selectedCounty = selected;
+                countyInput.value = selected;
+                updateFilteredData();
+                updateMap();
+                updateTable();
+            });
+            countyResults.classList.add('active');
+        }
     });
+
+    // Handle blur on county input
+    countyInput.addEventListener('blur', function () {
+        // Delay hiding to allow for click on autocomplete item
+        setTimeout(() => {
+            countyResults.classList.remove('active');
+        }, 200);
+    });
+
+    // Add event listeners for wage level and location filters
 
     document.getElementById('wage-level').addEventListener('change', function () {
         selectedLevel = this.value;
@@ -191,23 +266,20 @@ function populateFilters() {
         updateTable();
     });
 
-    countySelect.addEventListener('change', function () {
-        selectedCounty = this.value;
-        updateFilteredData();
-        updateMap(); // This will also call zoomToSelectedArea
-        updateTable();
-    });
+    // County input is now handled by the autocomplete event listeners
 }
 
 // Update city and county options based on selected state
 // Make this function globally accessible for the reset button
 window.updateCityAndCountyOptions = function () {
     const citySelect = document.getElementById('city');
-    const countySelect = document.getElementById('county');
+    const countyInput = document.getElementById('county');
+    const countyResults = document.getElementById('county-results');
 
     // Reset selections
     selectedCity = 'All';
     selectedCounty = 'All';
+    countyInput.value = 'All';
 
     // Filter cities based on selected state
     if (selectedState === 'All') {
@@ -245,12 +317,43 @@ window.updateCityAndCountyOptions = function () {
     updateCountyOptions();
 }
 
+// Display autocomplete results
+function displayAutocompleteResults(resultsElement, items, inputValue, onSelectCallback) {
+    // Clear previous results
+    resultsElement.innerHTML = '';
+
+    if (items.length === 0 || (items.length === 1 && items[0].toLowerCase() === inputValue.toLowerCase())) {
+        resultsElement.classList.remove('active');
+        return;
+    }
+
+    // Create and append result items
+    items.forEach(item => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'autocomplete-item';
+        resultItem.textContent = item;
+
+        // Add click event to select this item
+        resultItem.addEventListener('click', function () {
+            onSelectCallback(item);
+            resultsElement.classList.remove('active');
+        });
+
+        resultsElement.appendChild(resultItem);
+    });
+
+    // Show results
+    resultsElement.classList.add('active');
+}
+
 // Update county options based on selected state and city
 window.updateCountyOptions = function () {
-    const countySelect = document.getElementById('county');
+    const countyInput = document.getElementById('county');
+    const countyResults = document.getElementById('county-results');
 
     // Reset selection
     selectedCounty = 'All';
+    countyInput.value = 'All';
 
     // Filter counties based on selected state and city
     let filteredCounties = [];
@@ -289,13 +392,19 @@ window.updateCountyOptions = function () {
         filteredCounties = ['All', ...new Set(countyNames)].filter(Boolean).sort();
     }
 
-    // Populate the county dropdown
-    countySelect.innerHTML = '';
-    filteredCounties.forEach(county => {
-        const option = document.createElement('option');
-        option.value = county;
-        option.textContent = county;
-        countySelect.appendChild(option);
+    // Clear previous results
+    countyResults.innerHTML = '';
+
+    // Create a sample of counties to show initially
+    const sampleCounties = filteredCounties.slice(0, 5);
+
+    // Display sample counties
+    displayAutocompleteResults(countyResults, sampleCounties, '', (selected) => {
+        selectedCounty = selected;
+        countyInput.value = selected;
+        updateFilteredData();
+        updateMap();
+        updateTable();
     });
 }
 
