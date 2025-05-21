@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#34c759">
+    <meta name="description" content="Interactive map visualization of OFLC prevailing wage data for 2024-25">
+    <title>Wage Atlas • OFLC Prevailing Wage Map 2024-25</title>
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar hidden">
+            <h2>Filter Wage Map</h2>
+
+            <div class="filter-group">
+                <label for="job-title">Select Job Title</label>
+                <select id="job-title"></select>
+            </div>
+
+            <div class="filter-group">
+                <label for="wage-level">Select Wage Level</label>
+                <select id="wage-level">
+                    <option value="Level1">Level 1</option>
+                    <option value="Level2">Level 2</option>
+                    <option value="Level3">Level 3</option>
+                    <option value="Level4">Level 4</option>
+                    <option value="Average">Average</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="state">Filter by State</label>
+                <select id="state">
+                    <option value="All">All</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="city">Filter by City</label>
+                <select id="city">
+                    <option value="All">All</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="county">Filter by County</label>
+                <select id="county">
+                    <option value="All">All</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="min-wage">Minimum Wage ($)</label>
+                <input type="number" id="min-wage" min="0" step="1000" placeholder="Enter minimum wage">
+            </div>
+
+            <div class="filter-group">
+                <label for="max-wage">Maximum Wage ($)</label>
+                <input type="number" id="max-wage" min="0" step="1000" placeholder="Enter maximum wage">
+            </div>
+
+            <div class="filter-group">
+                <button id="apply-wage-filters">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+
+        <button id="toggle-sidebar" class="toggle-sidebar-button">
+            <span class="toggle-icon"><i class="fas fa-bars"></i></span>
+            <span class="toggle-text">Filters</span>
+        </button>
+
+        <div class="main-content">
+            <div class="header">
+                <div class="header-content">
+                    <h1>Wage Atlas</h1>
+                    <h3>Interactive visualization of prevailing wage data across the United States</h3>
+                    <p id="map-subtitle" class="subtitle"></p>
+                    <button id="info-button" class="info-button" title="Data Sources">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Sources Modal -->
+            <div id="data-sources-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-button"><i class="fas fa-times"></i></span>
+                    <h4>Data Sources</h4>
+                    <ul>
+                        <li>OFLC wage data from <a href="https://flag.dol.gov/wage-data/wage-data-downloads"
+                                target="_blank">U.S. Department of Labor</a></li>
+                        <li>Geographic boundaries from <a
+                                href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html"
+                                target="_blank">U.S. Census Bureau</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="data-table-container">
+                <button id="toggle-table">Show Data Table</button>
+                <div id="data-table" class="hidden">
+                    <table id="wage-table">
+                        <thead>
+                            <tr>
+                                <th>Area</th>
+                                <th>State</th>
+                                <th>Level 1</th>
+                                <th>Level 2</th>
+                                <th>Level 3</th>
+                                <th>Level 4</th>
+                                <th>Average</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="data.js"></script>
+    <script src="map.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
