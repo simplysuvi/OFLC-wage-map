@@ -113,11 +113,11 @@ function resetMapView() {
 async function loadStatesGeoJSON() {
     try {
         // Load state boundaries
-        const stateResponse = await fetch('/gz_2010_us_040_00_5m.json');
+        const stateResponse = await fetch('data/gz_2010_us_040_00_5m.json');
         stateData = await stateResponse.json();
 
         // Load county boundaries
-        const countyResponse = await fetch('/cbsa_boundaries_raw.geojson');
+        const countyResponse = await fetch('data/cbsa_boundaries_raw.geojson');
         countyData = await countyResponse.json();
 
         // Match CBSA areas with wage data
