@@ -21,7 +21,7 @@ const ANNUAL_MULTIPLIER = 2080; // 40 hours per week * 52 weeks
 // Load the CSV data
 async function loadData() {
     try {
-        const response = await fetch('OFLC_Wages_2024-25/official/ALC_with_geography_and_soc.csv');
+        const response = await fetch('data/OFLC_Wages_2024-25/official/ALC_with_geography_and_soc.csv');
         const csvText = await response.text();
 
         // Parse CSV using PapaParse
