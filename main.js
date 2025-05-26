@@ -134,6 +134,7 @@ function setupZipCodeLookup() {
 
                 // Find which CBSA area and county this location falls within
                 const areaInfo = findAreaForCoordinates(latitude, longitude);
+                // console.log(place,city,state,stateAbbr,areaInfo);
 
                 if (areaInfo) {
                     // Display the results
@@ -162,15 +163,41 @@ function setupZipCodeLookup() {
                                         stateDropdown.value = areaInfo.stateAbbr;
                                         updateCityAndCountyOptions();
 
-                                        // 2. Set city/area only (do not set county)
-                                        if (areaInfo.areaName) {
-                                            selectedCity = areaInfo.areaName;
+                                        // 2. Set city to cityName from areaInfo
+                                        if (areaInfo.cityName) {
+                                            selectedCity = areaInfo.cityName;
                                             const cityDropdown = document.getElementById('city');
-                                            cityDropdown.value = areaInfo.areaName;
+
+                                            // Ensure cityName is present in the dropdown options
+                                            let cityFound = false;
+                                            for (let i = 0; i < cityDropdown.options.length; i++) {
+                                                if (cityDropdown.options[i].value === areaInfo.cityName) {
+                                                    cityFound = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (!cityFound) {
+                                                // Add cityName as an option if not present
+                                                const option = document.createElement('option');
+                                                option.value = areaInfo.cityName;
+                                                option.text = areaInfo.cityName;
+                                                cityDropdown.add(option);
+                                            }
+                                            cityDropdown.value = areaInfo.cityName;
                                             updateCountyOptions();
+
+                                            // 3. Set county to first county in countyName (if present)
+                                            if (areaInfo.countyName) {
+                                                const firstCounty = areaInfo.countyName.split(',')[0].trim();
+                                                selectedCounty = firstCounty;
+                                                const countyDropdown = document.getElementById('county');
+                                                if (countyDropdown) {
+                                                    countyDropdown.value = firstCounty;
+                                                }
+                                            }
                                         }
 
-                                        // 3. Dispatch change events for state and city only
+                                        // 4. Dispatch change events in order
                                         // State change (triggers city/county options update)
                                         const stateEvent = new Event('change', { bubbles: true });
                                         stateDropdown.dispatchEvent(stateEvent);
@@ -180,7 +207,16 @@ function setupZipCodeLookup() {
                                         const cityEvent = new Event('change', { bubbles: true });
                                         cityDropdown.dispatchEvent(cityEvent);
 
-                                        // Zoom to the selected area on the map
+                                        // County change (triggers map/data update)
+                                        if (areaInfo.countyName) {
+                                            const countyDropdown = document.getElementById('county');
+                                            if (countyDropdown) {
+                                                const countyEvent = new Event('change', { bubbles: true });
+                                                countyDropdown.dispatchEvent(countyEvent);
+                                            }
+                                        }
+
+                                        // Zoom to the selected county on the map
                                         if (typeof zoomToSelectedArea === 'function') {
                                             zoomToSelectedArea();
                                         }
