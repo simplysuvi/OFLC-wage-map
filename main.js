@@ -138,7 +138,6 @@ function setupZipCodeLookup() {
                 if (areaInfo) {
                     // Display the results
                     resultDiv.innerHTML = `
-                        <strong>Location:</strong> ${city}, ${stateAbbr} (${state})<br>
                         <strong>Area:</strong> ${areaInfo.areaName || 'N/A'}<br>
                         <strong>County:</strong> ${areaInfo.countyName || 'N/A'}<br>
                     `;
@@ -163,23 +162,35 @@ function setupZipCodeLookup() {
                                         // Update city and county dropdowns
                                         updateCityAndCountyOptions();
 
-                                        if (areaInfo.cityName) {
-                                            selectedCity = areaInfo.cityName;
-                                            document.getElementById('city').value = areaInfo.cityName;
+                                        if (areaInfo.areaName) {
+                                            selectedCity = areaInfo.areaName;
+                                            const cityDropdown = document.getElementById('city');
+                                            cityDropdown.value = areaInfo.areaName;
 
                                             // Update county options
                                             updateCountyOptions();
-                                        }
 
-                                        if (areaInfo.countyName) {
-                                            selectedCounty = areaInfo.countyName;
-                                            document.getElementById('county').value = areaInfo.countyName;
+                                            // Set county to 'All' to avoid conflicting filters
+                                            selectedCounty = 'All';
+                                            const countyDropdown = document.getElementById('county');
+                                            if (countyDropdown) {
+                                                countyDropdown.value = 'All';
+                                            }
+
+                                            // Trigger change event on city dropdown to update filters and map
+                                            const event = new Event('change', { bubbles: true });
+                                            cityDropdown.dispatchEvent(event);
                                         }
 
                                         // Update filtered data and map
                                         updateFilteredData();
                                         updateMap();
                                         updateTable();
+
+                                        // Zoom to the selected county on the map
+                                        if (typeof zoomToSelectedArea === 'function') {
+                                            zoomToSelectedArea();
+                                        }
 
                                         // Close the zip lookup modal using the shared closeModal function
                                         const zipLookupModal = document.getElementById('zip-lookup-modal');
@@ -195,7 +206,6 @@ function setupZipCodeLookup() {
                     }
                 } else {
                     resultDiv.innerHTML = `
-                        <strong>Location:</strong> ${city}, ${stateAbbr} (${state})<br>
                         <strong>Area:</strong> Not found in CBSA boundaries<br>
                         <strong>Note:</strong> This location may be outside defined metropolitan areas.
                     `;
