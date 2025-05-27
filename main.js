@@ -155,15 +155,15 @@ function setupZipCodeLookup() {
                             const viewDataBtn = document.getElementById('view-area-data');
                             if (viewDataBtn) {
                                 viewDataBtn.addEventListener('click', function () {
-                                    // Update filters to show this area
+                                    // Update filters to show this area, prioritizing city/county highlight
                                     if (areaInfo.stateAbbr) {
-                                        // 1. Set state and update city options
+                                        // 1. Set state to ensure city is available in dropdown, but do not highlight state
                                         selectedState = areaInfo.stateAbbr;
                                         const stateDropdown = document.getElementById('state');
                                         stateDropdown.value = areaInfo.stateAbbr;
                                         updateCityAndCountyOptions();
 
-                                        // 2. Set city to cityName from areaInfo
+                                        // 2. Set city to cityName from areaInfo and update dropdown
                                         if (areaInfo.cityName) {
                                             selectedCity = areaInfo.cityName;
                                             const cityDropdown = document.getElementById('city');
@@ -197,17 +197,11 @@ function setupZipCodeLookup() {
                                             }
                                         }
 
-                                        // 4. Dispatch change events in order
-                                        // State change (triggers city/county options update)
-                                        const stateEvent = new Event('change', { bubbles: true });
-                                        stateDropdown.dispatchEvent(stateEvent);
-
-                                        // City change (triggers county options update)
+                                        // 4. Dispatch city and county change events to update map and highlight area
                                         const cityDropdown = document.getElementById('city');
                                         const cityEvent = new Event('change', { bubbles: true });
                                         cityDropdown.dispatchEvent(cityEvent);
 
-                                        // County change (triggers map/data update)
                                         if (areaInfo.countyName) {
                                             const countyDropdown = document.getElementById('county');
                                             if (countyDropdown) {
@@ -216,10 +210,13 @@ function setupZipCodeLookup() {
                                             }
                                         }
 
-                                        // Zoom to the selected county on the map
+                                        // Ensure map/data/table are updated and zoom to the selected area
+                                        updateFilteredData();
+                                        updateMap();
                                         if (typeof zoomToSelectedArea === 'function') {
                                             zoomToSelectedArea();
                                         }
+                                        updateTable();
 
                                         // Close the zip lookup modal using the shared closeModal function
                                         const zipLookupModal = document.getElementById('zip-lookup-modal');

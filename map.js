@@ -736,25 +736,42 @@ function addLegendControl() {
     };
 
     legend.update = function () {
-        const minGrade = 0;
-        const midGrade = 50;
-        const maxGrade = 100;
-        const minAnnual = minGrade * ANNUAL_MULTIPLIER;
-        const midAnnual = midGrade * ANNUAL_MULTIPLIER;
-        const maxAnnual = maxGrade * ANNUAL_MULTIPLIER;
+        // Determine the correct wage field
+        const wageField = (typeof selectedLevel === 'string' && selectedLevel.includes('Annual'))
+            ? selectedLevel
+            : selectedLevel + '_Annual';
+
+        // Get wage values from filteredData
+        let wageValues = [];
+        if (typeof filteredData !== 'undefined' && Array.isArray(filteredData)) {
+            wageValues = filteredData
+                .map(row => row[wageField])
+                .filter(val => typeof val === 'number' && !isNaN(val));
+        }
+
+        // Fallback if no data
+        let minWage = 0, maxWage = 100000, midWage = 50000;
+        if (wageValues.length > 0) {
+            minWage = Math.min(...wageValues);
+            maxWage = Math.max(...wageValues);
+            midWage = Math.round((minWage + maxWage) / 2);
+        }
+
+        // For display, round to nearest $1,000
+        const roundK = v => `$${Math.round(v / 1000)}k`;
 
         let html = '<div class="vertical-gradient-bar"></div>';
 
         // Add min, mid, and max wage markers
         html += '<div class="wage-markers">';
         html += `<div class="wage-marker" style="bottom: 0%;">
-                  <span class="wage-value">$${Math.round(minAnnual / 1000)}k</span>
+                  <span class="wage-value">${roundK(minWage)}</span>
                  </div>`;
         html += `<div class="wage-marker" style="bottom: 50%;">
-                  <span class="wage-value">$${Math.round(midAnnual / 1000)}k</span>
+                  <span class="wage-value">${roundK(midWage)}</span>
                  </div>`;
         html += `<div class="wage-marker" style="bottom: 100%;">
-                  <span class="wage-value">$${Math.round(maxAnnual / 1000)}k+</span>
+                  <span class="wage-value">${roundK(maxWage)}${wageValues.length > 0 ? '' : '+'}</span>
                  </div>`;
         html += '</div>';
 
