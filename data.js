@@ -24,7 +24,7 @@ async function loadData() {
         // Show loading overlay
         document.getElementById('map-loading-overlay').style.display = 'flex';
 
-        const response = await fetch('data/OFLC_Wages_2024-25/official/ALC_with_geography_and_soc.csv');
+        const response = await fetch('data/OFLC_Wages_2025-26/official/ALC_with_geography_and_soc.csv');
         const csvText = await response.text();
 
         // Parse CSV using PapaParse
