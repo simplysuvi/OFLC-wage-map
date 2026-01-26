@@ -24,13 +24,16 @@ document.addEventListener('DOMContentLoaded', function () {
     document.head.appendChild(style);
 
     // Set up the table toggle button
-    setupTableToggle();
+    setupTableControls();
 
     // Set up minimum wage filter
     setupMinWageFilter();
 
     // Set up zip code lookup
     setupZipCodeLookup();
+
+    // Set up persistent settings
+    setupSettings();
 
     // Load the wage data
     loadData();
@@ -362,8 +365,10 @@ let closeModalFunction;
 function setupInfoModal() {
     const infoButton = document.getElementById('info-button');
     const zipLookupButton = document.getElementById('zip-lookup-button');
+    const settingsButton = document.getElementById('settings-button');
     const dataSourcesModal = document.getElementById('data-sources-modal');
     const zipLookupModal = document.getElementById('zip-lookup-modal');
+    const settingsModal = document.getElementById('settings-modal');
 
     // Define modal functions globally
     openModalFunction = function (modal) {
@@ -391,6 +396,9 @@ function setupInfoModal() {
 
     // Set up zip lookup modal
     setupModal(zipLookupButton, zipLookupModal);
+
+    // Set up settings modal
+    setupModal(settingsButton, settingsModal);
 
     // Helper function to set up a modal
     function setupModal(button, modal) {
@@ -420,4 +428,105 @@ function setupInfoModal() {
             }
         });
     }
+}
+
+// Set up persistent settings
+function setupSettings() {
+    const saveButton = document.getElementById('save-defaults-btn');
+    const clearButton = document.getElementById('clear-defaults-btn');
+    const jobTitleInput = document.getElementById('default-job-title');
+    const jobTitleResults = document.getElementById('default-job-title-results');
+    const wageLevelSelect = document.getElementById('default-wage-level');
+    const salaryInput = document.getElementById('default-annual-salary');
+    const messageDiv = document.getElementById('settings-message');
+
+    // Load saved settings
+    const savedTitle = localStorage.getItem('defaultJobTitle');
+    const savedLevel = localStorage.getItem('defaultWageLevel');
+    const savedSalary = localStorage.getItem('defaultAnnualSalary');
+
+    if (savedTitle) {
+        jobTitleInput.value = savedTitle;
+    }
+    if (savedLevel) {
+        wageLevelSelect.value = savedLevel;
+    }
+    if (savedSalary) {
+        salaryInput.value = savedSalary;
+    }
+
+    // Save settings
+    saveButton.addEventListener('click', function() {
+        const title = jobTitleInput.value.trim();
+        const level = wageLevelSelect.value;
+        const salary = salaryInput.value;
+
+        if (title) {
+            localStorage.setItem('defaultJobTitle', title);
+            localStorage.setItem('defaultWageLevel', level);
+            if (salary) {
+                localStorage.setItem('defaultAnnualSalary', salary);
+            } else {
+                localStorage.removeItem('defaultAnnualSalary');
+            }
+            
+            messageDiv.innerHTML = 'Settings saved successfully! Reload the page to apply defaults.';
+            messageDiv.classList.add('active');
+            
+            setTimeout(() => {
+                messageDiv.classList.remove('active');
+            }, 3000);
+        } else {
+            messageDiv.innerHTML = 'Please enter a job title.';
+            messageDiv.classList.add('active');
+        }
+    });
+
+    // Clear settings
+    clearButton.addEventListener('click', function() {
+        localStorage.removeItem('defaultJobTitle');
+        localStorage.removeItem('defaultWageLevel');
+        localStorage.removeItem('defaultAnnualSalary');
+        
+        jobTitleInput.value = '';
+        wageLevelSelect.value = 'Level1';
+        salaryInput.value = '';
+        
+        messageDiv.innerHTML = 'Defaults cleared.';
+        messageDiv.classList.add('active');
+            
+        setTimeout(() => {
+            messageDiv.classList.remove('active');
+        }, 3000);
+    });
+
+    // Autocomplete for job title
+    jobTitleInput.addEventListener('input', function() {
+        const inputValue = this.value.toLowerCase();
+        
+        // We need access to uniqueTitles from data.js
+        if (typeof uniqueTitles !== 'undefined') {
+            const filteredTitles = uniqueTitles.filter(title => 
+                title.toLowerCase().includes(inputValue)
+            );
+            
+            displayAutocompleteResults(jobTitleResults, filteredTitles, inputValue, (selected) => {
+                jobTitleInput.value = selected;
+            });
+        }
+    });
+
+    // Handle focus on job title input
+    jobTitleInput.addEventListener('focus', function() {
+        if (jobTitleResults.children.length > 0) {
+            jobTitleResults.classList.add('active');
+        }
+    });
+
+    // Handle blur on job title input
+    jobTitleInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            jobTitleResults.classList.remove('active');
+        }, 200);
+    });
 }

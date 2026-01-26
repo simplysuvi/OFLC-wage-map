@@ -627,14 +627,19 @@ a:hover {
     border-top: 1px solid var(--neutral-100);
 }
 
-#toggle-table {
+.table-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.table-controls button {
     padding: 12px 24px;
     background-color: var(--primary);
     color: white;
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
-    margin-bottom: 20px;
     font-weight: 500;
     font-size: 1rem;
     transition: var(--transition);
@@ -646,7 +651,11 @@ a:hover {
     justify-content: center;
 }
 
-#toggle-table::before {
+.table-controls button i {
+    margin-right: 8px;
+}
+
+.table-controls button::before {
     content: '';
     position: absolute;
     top: 0;
@@ -658,17 +667,17 @@ a:hover {
     transition: var(--transition-fast);
 }
 
-#toggle-table:hover {
+.table-controls button:hover {
     background-color: var(--primary-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
-#toggle-table:hover::before {
+.table-controls button:hover::before {
     opacity: 1;
 }
 
-#toggle-table:active {
+.table-controls button:active {
     transform: translateY(0);
 }
 
@@ -681,50 +690,7 @@ a:hover {
     border-top: 1px solid var(--neutral-100);
 }
 
-#toggle-table {
-    padding: 12px 24px;
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    margin-bottom: 20px;
-    font-weight: 500;
-    font-size: 1rem;
-    transition: var(--transition);
-    box-shadow: var(--shadow-sm);
-    position: relative;
-    overflow: hidden;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#toggle-table::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
-    opacity: 0;
-    transition: var(--transition-fast);
-}
-
-#toggle-table:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-#toggle-table:hover::before {
-    opacity: 1;
-}
-
-#toggle-table:active {
-    transform: translateY(0);
-}
+/* These styles are now covered by .table-controls button */
 
 #data-table {
     max-height: 400px;
@@ -1582,9 +1548,11 @@ a.filter-toggle-button {
         padding: 5px 10px;
     }
 
-    #toggle-table {
-        padding: 10px 16px;
-        font-size: 0.9rem;
+    .table-controls {
+        flex-direction: column;
+    }
+
+    .table-controls button {
         width: 100%;
     }
 

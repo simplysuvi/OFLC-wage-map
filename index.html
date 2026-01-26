@@ -113,6 +113,9 @@
                         <button id="zip-lookup-button" class="header-button" title="Zip Code Lookup">
                             <i class="fas fa-search-location"></i>
                         </button>
+                        <button id="settings-button" class="header-button" title="Default Settings">
+                            <i class="fas fa-cog"></i>
+                        </button>
                         <button id="info-button" class="header-button" title="Data Sources">
                             <i class="fas fa-info-circle"></i>
                         </button>
@@ -156,6 +159,45 @@
                 </div>
             </div>
 
+            <!-- Settings Modal -->
+            <div id="settings-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-button"><i class="fas fa-times"></i></span>
+                    <h4>Default Configuration</h4>
+                    <p>Set default values that will persist until cleared.</p>
+                    
+                    <div class="filter-group">
+                        <label for="default-job-title">Default Job Title</label>
+                        <div class="autocomplete-wrapper">
+                            <input type="text" id="default-job-title" placeholder="Type to search...">
+                            <div class="autocomplete-results" id="default-job-title-results"></div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="default-wage-level">Default Wage Level</label>
+                        <select id="default-wage-level">
+                            <option value="Level1">Level 1</option>
+                            <option value="Level2">Level 2</option>
+                            <option value="Level3">Level 3</option>
+                            <option value="Level4">Level 4</option>
+                            <option value="Average">Average</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="default-annual-salary">Your Annual Salary ($)</label>
+                        <input type="number" id="default-annual-salary" min="0" step="1000" placeholder="e.g., 50000">
+                    </div>
+
+                    <div class="filter-actions" style="justify-content: space-between;">
+                        <button id="clear-defaults-btn" style="background-color: var(--neutral-500);">Clear Defaults</button>
+                        <button id="save-defaults-btn">Save Defaults</button>
+                    </div>
+                    <div id="settings-message" class="zip-result" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
             <div id="map">
                 <!-- Loading overlay for the map -->
                 <div id="map-loading-overlay">
@@ -165,7 +207,10 @@
             </div>
 
             <div class="data-table-container">
-                <button id="toggle-table">Show Data Table</button>
+                <div class="table-controls">
+                    <button id="toggle-table">Show Data Table</button>
+                    <button id="copy-table-btn"><i class="fas fa-copy"></i> Copy Table</button>
+                </div>
                 <div id="data-table" class="hidden">
                     <table id="wage-table">
                         <thead>

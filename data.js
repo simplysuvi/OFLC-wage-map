@@ -107,8 +107,20 @@ function processData(data) {
     // Populate filter dropdowns
     populateFilters();
 
-    // Set initial selection
-    if (uniqueTitles.length > 0) {
+    // Set initial selection based on saved defaults or first available title
+    const savedTitle = localStorage.getItem('defaultJobTitle');
+    const savedLevel = localStorage.getItem('defaultWageLevel');
+    const savedSalary = localStorage.getItem('defaultAnnualSalary');
+
+    if (savedTitle && uniqueTitles.includes(savedTitle)) {
+        selectedTitle = savedTitle;
+        document.getElementById('job-title').value = selectedTitle;
+        
+        if (savedLevel) {
+            selectedLevel = savedLevel;
+            document.getElementById('wage-level').value = savedLevel;
+        }
+    } else if (uniqueTitles.length > 0) {
         selectedTitle = uniqueTitles[0];
         document.getElementById('job-title').value = selectedTitle;
     }
@@ -127,7 +139,8 @@ function populateFilters() {
     const jobTitleResults = document.getElementById('job-title-results');
 
     // Set up initial job title value if available
-    if (uniqueTitles.length > 0) {
+    // Note: This might be overwritten by processData logic which checks for defaults
+    if (uniqueTitles.length > 0 && !jobTitleInput.value) {
         selectedTitle = uniqueTitles[0];
         jobTitleInput.value = selectedTitle;
     }
@@ -412,6 +425,18 @@ window.updateCountyOptions = function () {
 window.updateFilteredData = function () {
     filteredData = wageData.filter(row => row.Title === selectedTitle);
 
+    const savedSalary = localStorage.getItem('defaultAnnualSalary');
+
+    if (savedSalary) {
+        const salary = parseFloat(savedSalary);
+        const threshold = salary - 5000;
+        const wageField = selectedLevel + '_Annual';
+        
+        filteredData = filteredData.filter(row => {
+            return row[wageField] <= threshold;
+        });
+    }
+
     if (selectedState !== 'All') {
         filteredData = filteredData.filter(row => row.StateAb === selectedState);
     }
@@ -440,16 +465,16 @@ window.updateFilteredData = function () {
     // Get the appropriate wage field based on the selected level
     const wageField = selectedLevel.includes('Annual') ? selectedLevel : selectedLevel + '_Annual';
 
-    // Apply minimum wage filter if set
-    if (minWageFilter > 0) {
+    // Apply minimum wage filter if set (and not overridden by salary filter)
+    if (minWageFilter > 0 && !savedSalary) {
         // Filter out areas with wages below the minimum
         filteredData = filteredData.filter(row => {
             return row[wageField] >= minWageFilter;
         });
     }
 
-    // Apply maximum wage filter if set
-    if (maxWageFilter > 0) {
+    // Apply maximum wage filter if set (and not overridden by salary filter)
+    if (maxWageFilter > 0 && !savedSalary) {
         // Filter out areas with wages above the maximum
         filteredData = filteredData.filter(row => {
             return row[wageField] <= maxWageFilter;
@@ -533,15 +558,16 @@ function formatCurrency(value) {
     return '$' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 }
 
-// Toggle data table visibility function
-function setupTableToggle() {
+// Toggle data table visibility and copy functionality
+function setupTableControls() {
     const toggleButton = document.getElementById('toggle-table');
+    const copyButton = document.getElementById('copy-table-btn');
+    
     if (toggleButton) {
         toggleButton.addEventListener('click', function () {
             const dataTable = document.getElementById('data-table');
             if (dataTable) {
                 const isHidden = dataTable.classList.contains('hidden');
-
                 if (isHidden) {
                     dataTable.classList.remove('hidden');
                     this.textContent = 'Hide Data Table';
@@ -550,6 +576,44 @@ function setupTableToggle() {
                     this.textContent = 'Show Data Table';
                 }
             }
+        });
+    }
+
+    if (copyButton) {
+        copyButton.addEventListener('click', function() {
+            const table = document.getElementById('wage-table');
+            let tableContent = '';
+
+            // Add headers
+            const headers = table.querySelectorAll('thead th');
+            const headerText = Array.from(headers).map(th => th.textContent).join('\t');
+            tableContent += headerText + '\n';
+
+            // Add rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowText = Array.from(cells).map(cell => cell.textContent).join('\t');
+                tableContent += rowText + '\n';
+            });
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(tableContent).then(() => {
+                // Success feedback
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy table: ', err);
+                // Error feedback
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-times"></i> Failed!';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            });
         });
     }
 }

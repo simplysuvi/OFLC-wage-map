@@ -338,7 +338,7 @@ function styleCountyFeature(feature) {
 
     return {
         fillColor: getColor(feature.properties[selectedLevel]),
-        weight: isSelected ? 4 : 1, // Thinner for county boundaries
+        weight: isSelected ? 2 : 1, // Thinner for county boundaries
         opacity: 1,
         color: isSelected ? '#ff7800' : '#4ad66d', // Light green for county boundaries
         dashArray: isSelected ? '' : '3',
@@ -353,7 +353,7 @@ function styleStateFeature(feature) {
 
     return {
         fillColor: 'transparent', // Transparent fill for state boundaries
-        weight: isSelected ? 4 : 3, // Thicker for state boundaries
+        weight: isSelected ? 2 : 3, // Thicker for state boundaries
         opacity: 1,
         color: isSelected ? '#ff7800' : '#208b3a', // Dark green for state boundaries
         dashArray: isSelected ? '' : '',
@@ -423,7 +423,7 @@ function styleFeature(feature) {
     // Style all boundaries with state boundary style for visibility
     return {
         fillColor: getColor(feature.properties[selectedLevel]),
-        weight: isSelected ? 4 : 3, // Thicker for all boundaries
+        weight: isSelected ? 2 : 3, // Thicker for all boundaries
         opacity: 1,
         color: isSelected ? '#ff7800' : '#208b3a', // Dark green for all boundaries
         dashArray: isSelected ? '' : '',
@@ -440,8 +440,9 @@ function isFeatureSelected(feature) {
 
     // For county features
     if (feature.properties.isCounty) {
-        // If all filters are set to 'All' and no minimum wage filter, no features should be selected
-        if (selectedState === 'All' && selectedCity === 'All' && selectedCounty === 'All' && minWageFilter <= 0) {
+        const savedSalary = localStorage.getItem('defaultAnnualSalary');
+        // If all filters are set to 'All' and no wage filters are active (manual or saved), no features should be selected for highlighting
+        if (selectedState === 'All' && selectedCity === 'All' && selectedCounty === 'All' && minWageFilter <= 0 && maxWageFilter <= 0 && !savedSalary) {
             return false;
         }
 
@@ -476,22 +477,28 @@ function isFeatureSelected(feature) {
         // Get the appropriate wage field based on the selected level
         const wageField = selectedLevel.includes('Annual') ? selectedLevel : selectedLevel + '_Annual';
 
-        // Check minimum wage filter
-        if (minWageFilter > 0) {
-            // Check if the wage is below the minimum
-            if (!feature.properties.hasData || feature.properties[wageField] < minWageFilter) {
+        // Check salary filter from settings
+        if (savedSalary) {
+            const salary = parseFloat(savedSalary);
+            const threshold = salary - 5000;
+
+            if (!feature.properties.hasData || feature.properties[wageField] > threshold) {
                 matches = false;
             }
-        }
-
-        // Check maximum wage filter
-        if (maxWageFilter > 0) {
-            // Check if the wage is above the maximum
-            if (!feature.properties.hasData || feature.properties[wageField] > maxWageFilter) {
-                matches = false;
+        } else {
+            // Only apply min/max if salary filter is not active
+            if (minWageFilter > 0) {
+                if (!feature.properties.hasData || feature.properties[wageField] < minWageFilter) {
+                    matches = false;
+                }
+            }
+            if (maxWageFilter > 0) {
+                if (!feature.properties.hasData || feature.properties[wageField] > maxWageFilter) {
+                    matches = false;
+                }
             }
         }
-
+        
         return matches;
     }
 
